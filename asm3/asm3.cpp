@@ -70,7 +70,7 @@ int main()
         
         mov edi, edx
         repe movsb;// копируем ecx символов из esi в edi
-        mov byte ptr [edi], ' '
+        mov byte ptr[edi], al;// добавляем пробел
         inc edi
         mov edx, edi;// сохраняем конец строки s2
         
