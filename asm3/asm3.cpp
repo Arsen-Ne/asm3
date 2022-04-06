@@ -7,55 +7,48 @@ using namespace std;
 int main()
 {
     setlocale(LC_ALL, ".1251");
-    char s1[] = "mamam  myla ramu   da diid t ", s2[255] = "";      
+    char s1[] = "mamam  myla ramu 5 da diid ttty 11", s2[255] = "";     
+    int n = strlen(s1);
     
     __asm {  
         cld;// просмотр вперёд
-        lea edi, s2
-        mov edx, edi;// сохраняем начало строки s2 в edx
-        lea esi, s1;// esi на начало строки s1
+        lea esi, s2
+        mov edx, esi;// сохраняем начало строки s2 в edx
+        lea edi, s1;// esi на начало строки s1
 
-    ;// пропуск пробелов
-    skipSpace:
-        lodsb;// загрузить символ из es:[esi] в al
-        cmp al, ' '
-        jz skipSpace
-        test al, al
-        jz endAll;// конец строки
-            
-    ;// выделение слова
-        mov edi, esi;// edi-1 первая буква слова        
-    letter:            
-        cmp al, 0
-        jz stop
-        cmp al, ' '
-        jz stop         
-        lodsb
-        jmp letter
+        mov ecx, n    
+        inc ecx;// для корректного определения последнего слова
+        mov al, ' '
     
-    stop:
-        mov ecx, esi;// esi-2 последняя буква слова
-        sub ecx, edi;// ecx - длина слова                
-        dec edi; // edi - начало слова
+    findWord:  
+        repz scasb;// пропуск пробелов    
+        mov esi, edi;// esi-1 - начало слова
+        repnz scasb;// пропуск не пробелов     
+        push ecx
 
+        mov ecx, edi;// edi-2 - конец слова
+        sub ecx, esi;// ecx - длина слова    
+        dec esi;// esi - начало слова  
+    
     ;// определение палиндром ли текущее слово
         push esi
         push edi
         push eax
         push ecx        
          
-        mov ebx, 1;// 1 - палиндром, 0 - нет         
-        sub esi, 2;// esi - конец слова
+        mov ebx, 1;// 1 - палиндром, 0 - нет                 
     
         shr ecx, 1;// делим длину слова на 2
         jecxz yes;// если ecx == 0, слово из 1 буквы всегда палиндром
 
+        sub edi, 2;// edi - конец слова
+       
     l1:
-         mov al, es : [edi]
-         cmp al, es : [esi]
+         mov al, es : [esi]
+         cmp al, es : [edi]
          jnz no         
-         inc edi        
-         dec esi
+         inc esi        
+         dec edi
          loop l1
          jmp yes
 
@@ -75,7 +68,6 @@ int main()
         push esi
         push edi
         
-        mov esi, edi
         mov edi, edx
         repe movsb;// копируем ecx символов из esi в edi
         mov byte ptr [edi], ' '
@@ -86,10 +78,9 @@ int main()
         pop esi
    
     skipWord:
-        test al,al
-        jnz skipSpace;
-
-     endAll:             
+        pop ecx  
+        test ecx,ecx
+        jnz findWord;// если не конец строки
     }
 
     cout << "В строке: " << s1 << endl;
